@@ -1,0 +1,1 @@
+/usr/bin/c++   -fopenmp -O3 -DNDEBUG    -rdynamic CMakeFiles/main.dir/main.cpp.o CMakeFiles/main.dir/Mesh/Element.cpp.o CMakeFiles/main.dir/Solver/unknowns.cpp.o  -o bin/main ../gmsh-4.4.1-Linux64-sdk/lib/libgmsh.so.4.4.1 

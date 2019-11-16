@@ -1,0 +1,9 @@
+/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Geometry/Tests/test.msh
+1
+Advection
+AdvectionUpwind
+5
+1 0 0 1 0.5
+0.02
+0.04
+Gauss2
