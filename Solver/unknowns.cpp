@@ -136,43 +136,58 @@ void Unknown::getFluxes(const std::vector<double> normals)
 
 }
 
-void Unknown::getBoundaryConditions(int tag, std::vector<std::pair<std::size_t,std::size_t>> neighbours, int numGpPerFrontier)
+void Unknown::getBoundaryConditions(std::vector<std::size_t> frontierNodes, 
+                                    int numGpPerFrontier,
+                                    int numNodesPerFrontier,
+                                    int elementType)
 {
     std::size_t i, j, k, l;
-    std::vector<int> physicalTag;
+    std::vector<std::pair<int,int>> physicalDimTags;
+    std::vector<std::size_t> physicalNodes;
     m_boundaryType.resize(m_gaussValue.size(), "NONE");
 
-    gmsh::model::getPhysicalGroupsForEntity(gmsh::model::getDimension() - 1, 
-                                            tag, 
-                                            physicalTag);
+    gmsh::model::getPhysicalGroups(physicalDimTags,
+                                   gmsh::model::getDimension() - 1);
 
-    for(i = 0; i < physicalTag.size(); ++i)
+    for(i = 0; i < physicalDimTags.size(); ++i)
     {
         std::string name;
         std::vector<double> bin;
         std::vector<int> bin2;
-        std::vector<std::vector<std::size_t>> elementTags, bin1;
+        std::vector<std::vector<std::size_t>> elementTags;
+        int nodeCount = 0;
 
-        gmsh::model::getPhysicalName(gmsh::model::getDimension() - 1,
-                                     physicalTag[i],
+        gmsh::model::getPhysicalName(physicalDimTags[i].first,
+                                     physicalDimTags[i].second,
                                      name);
 
-        gmsh::model::mesh::getElements(bin2,
-                                       elementTags,
-                                       bin1,
-                                       gmsh::model::getDimension() - 1,
-                                       physicalTag[i]);
+        gmsh::model::mesh::getNodesForPhysicalGroup(physicalDimTags[i].first,
+                                                    physicalDimTags[i].second,
+                                                    physicalNodes,
+                                                    bin);
 
-        for(j = 0; j < neighbours.size(); ++j)
+        for(j = 0; j < frontierNodes.size(); ++j)
         {
-            for(k = 0; k < elementTags[0].size() && neighbours[j].second == 0 && elementTags[0][k] != neighbours[j].first; ++k)
+            if(!(j % numNodesPerFrontier) && j)
             {
-                
-                for(l = 0; l < numGpPerFrontier && elementTags[0][k] == neighbours[j].first; ++l)
-                {
-                    m_boundaryType[j * numGpPerFrontier + l] = name;
-                } 
+                nodeCount = 0;
+            }
 
+            for(k = 0; k < physicalNodes.size(); ++k)
+            {
+                if(frontierNodes[j] == physicalNodes[k])
+                {
+                    ++nodeCount;
+                    break;
+                }
+            }
+
+            if(nodeCount == numNodesPerFrontier)
+            {
+                for(k = 0; k < numGpPerFrontier; ++k)
+                {
+                    m_boundaryType[j/numNodesPerFrontier * numGpPerFrontier + k] = name;
+                }
             }
         }
         
