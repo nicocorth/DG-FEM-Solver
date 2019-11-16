@@ -193,27 +193,15 @@ void Unknown::getGaussPointValues(std::vector<std::pair<int, int>> nodeCorrespon
     {
         for(j = 0; j < elementNumNodes; ++j)
         {
-            m_gaussValue[i].first += m_nodeValue[nodeCorrespondance[]] 
+            m_gaussValue[i].first += m_nodeValue[nodeCorrespondance[i/numGpPerFrontier * elementNumNodes + j].first] 
                                    * basisfunctions[j * numGpPerFrontier + i % numGpPerFrontier];
                                     
-            if(neighbours[i/numGpPerFrontier].second > 0)
+            if(nodeCorrespondance[i/numGpPerFrontier * elementNumNodes + j].second >= 0)
             {
-                m_gaussValue[i].second += m_nodeValue[neighbours[i].second * elementNumNodes + j] 
+                m_gaussValue[i].second += m_nodeValue[nodeCorrespondance[i/numGpPerFrontier * elementNumNodes + j].second] 
                                         * basisfunctions[j * numGpPerFrontier + i % numGpPerFrontier];
             }
-        }
 
-        if(neighbours[i/numGpPerFrontier].second == 0)
-        {
-            if(!(m_boundaryType[i].compare("Sinusoidal")))
-            {
-                m_gaussValue[i].second = m_parameters[3] * sin(m_parameters[4] * m_time);  
-            }
-
-            else if(!(m_boundaryType[i].compare("Opening")))
-            {
-                m_gaussValue[i].second = m_gaussValue[i].first;  
-            }
         }
     }
 }
