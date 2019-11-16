@@ -1,5 +1,3 @@
-//#define EIGEN_DEFAULT_TO_ROW_MAJOR
-
 #include <cstdio>
 #include <iostream>
 

@@ -1,0 +1,8 @@
+Build/
+*~
+*.o
+*.obj
+*.bak
+.vscode/
+*.msh
+*.geo

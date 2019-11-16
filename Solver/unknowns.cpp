@@ -11,7 +11,10 @@ void parametersLoading(const std::string paramPath,
                        int & numUnknown,
                        std::vector<std::string> & fluxName,
                        std::vector<std::string> & numFluxName,
-                       std::vector<std::vector<double>> & parameters)
+                       std::vector<std::vector<double>> & parameters,
+                       double & timeStep,
+                       double & timeMax,
+                       std::string & gaussType)
 {
 
     std::size_t i, j;
@@ -55,7 +58,40 @@ void parametersLoading(const std::string paramPath,
 
     }
 
+    parametersFile >> timeStep;
+    parametersFile.get();
+
+    parametersFile >> timeMax;
+    parametersFile.get();
+
+    getline(parametersFile, gaussType);
+
     parametersFile.close();
+
+}
+
+Unknown::Unknown(double totalGaussPointsNumber, 
+                 double totalNumNodes, 
+                 std::string fluxName, 
+                 std::string numFluxName, 
+                 std::vector<double> parameters)
+{
+    m_nodeValue.resize(totalNumNodes, 0);
+
+    m_fluxX.resize(totalNumNodes, 0);
+    m_fluxY.resize(totalNumNodes, 0);
+    m_fluxZ.resize(totalNumNodes, 0);
+
+    m_gaussValue.resize(totalGaussPointsNumber, std::make_pair(0,0));
+
+    m_numFluxX.resize(totalGaussPointsNumber, 0);
+    m_numFluxY.resize(totalGaussPointsNumber, 0);
+    m_numFluxZ.resize(totalGaussPointsNumber, 0);
+
+    m_fluxName = fluxName;
+    m_numFluxName = numFluxName;
+    m_time = 0;
+    m_parameters = parameters;
 
 }
 
@@ -172,7 +208,6 @@ void Unknown::getBoundaryConditions(std::vector<std::size_t> frontierNodes,
     {
         std::string name;
         std::vector<double> bin;
-        std::vector<int> bin2;
         std::vector<std::vector<std::size_t>> elementTags;
         int nodeCount = 0;
 
@@ -238,4 +273,26 @@ void Unknown::getGaussPointValues(std::vector<std::pair<int, int>> nodeCorrespon
 
         }
     }
+}
+
+void Unknown::computeNextStep(std::vector<double> S,
+                              std::vector<double> F, 
+                              std::vector<double> M,
+                              int numNodes,
+                              double timeStep)
+{
+    std::size_t i, j, k;
+
+    for(i = 0; i < m_nodeValue.size(); ++i)
+    {
+        for(j = 0; j < numNodes; ++j)
+        {
+            for(k = 0; k < numNodes; ++k)
+            {
+                m_nodeValue[i] += M[i/m_nodeValue.size() * numNodes * numNodes + j * numNodes + k]
+                                * (S[i/m_nodeValue.size() + k] + F[i/m_nodeValue.size() + k]);
+            }
+        }
+    }
+    
 }
