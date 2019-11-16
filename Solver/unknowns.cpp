@@ -59,7 +59,11 @@ void parametersLoading(const std::string paramPath,
 
 }
 
-void Unknown::getFluxes(const std::vector<double> normals)
+void Unknown::getFluxes(const std::vector<double> normals,
+                        const std::vector<std::pair<int, int>> neighbours,
+                        int gaussPointsNumbers,
+                        std::vector<std::vector<double>> allNodeValues,
+                        std::vector<std::vector<std::pair<double,double>>> allGaussValues)
 {
     std::size_t i;
 
@@ -103,35 +107,50 @@ void Unknown::getFluxes(const std::vector<double> normals)
         m_numFluxY.resize(m_nodeValue.size(), 0);
         m_numFluxZ.resize(m_nodeValue.size(), 0);
 
-        if(gmsh::model::getDimension() == 1)
+        for(i = 0; i < normals.size(); ++i)
         {
-
+            scalarProducts[i/3] += m_parameters[i % 3] * normals[i];
         }
 
-        else
+        for(i = 0; i < m_numFluxX.size(); ++i)
         {
-            for(i = 0; i < normals.size(); ++i)
+            if(scalarProducts[i] > 0)
             {
-                scalarProducts[i/3] += m_parameters[i % 3] * normals[i];
+                m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].first;
+                m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].first;
+                m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].first;
             }
 
-            for(i = 0; i < m_numFluxX.size(); ++i)
+            else if(neighbours[i].second >= 0)
             {
-                if(scalarProducts[i] > 0)
-                {
-                    m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].first;
-                    m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].first;
-                    m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].first;
-                }
-
-                else
-                {
-                    m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].second;
-                    m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].second;
-                    m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].second;
-                }
+                m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].second;
+                m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].second;
+                m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].second;
             }
+
+            else if(m_boundaryType[i].find("Sinusoidal") != std::string::npos)
+            {
+                m_numFluxX[i] = m_parameters[0] * m_parameters[3] * sin(m_parameters[4] * m_time);
+                m_numFluxY[i] = m_parameters[1] * m_parameters[3] * sin(m_parameters[4] * m_time);
+                m_numFluxZ[i] = m_parameters[2] * m_parameters[3] * sin(m_parameters[4] * m_time);
+            }
+
+            else if(m_boundaryType[i].find("Opening") != std::string::npos)
+            {
+                m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].first;
+                m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].first;
+                m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].first;
+            }
+
+            else if(m_boundaryType[i].find("Wall") != std::string::npos)
+            {
+                m_numFluxX[i] = 0.;
+                m_numFluxY[i] = 0.;
+                m_numFluxZ[i] = 0.;
+            }
+
         }
+    
     }
 
 }
@@ -141,7 +160,7 @@ void Unknown::getBoundaryConditions(std::vector<std::size_t> frontierNodes,
                                     int numNodesPerFrontier,
                                     int elementType)
 {
-    std::size_t i, j, k, l;
+    std::size_t i, j, k;
     std::vector<std::pair<int,int>> physicalDimTags;
     std::vector<std::size_t> physicalNodes;
     m_boundaryType.resize(m_gaussValue.size(), "NONE");
