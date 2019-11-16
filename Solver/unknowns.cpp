@@ -289,8 +289,8 @@ void Unknown::computeNextStep(std::vector<double> S,
         {
             for(k = 0; k < numNodes; ++k)
             {
-                m_nodeValue[i] += M[i/m_nodeValue.size() * numNodes * numNodes + j * numNodes + k]
-                                * (S[i/m_nodeValue.size() + k] + F[i/m_nodeValue.size() + k]);
+                m_nodeValue[i] += M[i/numNodes * numNodes * numNodes + j * numNodes + k]
+                                * (S[i/numNodes * numNodes + k] + F[i/numNodes * numNodes + k]);
             }
         }
     }
