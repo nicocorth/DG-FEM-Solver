@@ -14,7 +14,7 @@ Element::Element(const std::string gaussType, int type, int entityTag)
     m_type = type;
 
     std::vector<std::size_t> tmp_sortedNodes(m_frontierNodes.size());// temporary storage of the sorted nodes.
-    std::vector<std::pair<std::size_t, std::size_t>> tmp_neighbours(m_tag.size()* m_numFrontierNodes); // Vector storing the neighbours temporarily.
+    std::vector<std::pair<std::size_t, std::size_t>> tmp_neighbours(m_tag.size() * m_numFrontierNodes); // Vector storing the neighbours temporarily.
     std::vector<std::size_t> sortedNodes; // Final vector of sorted nodes.
 
     // Get the global properties of the given element type.
@@ -105,8 +105,8 @@ Element::Element(const std::string gaussType, int type, int entityTag)
                                          m_gaussPoints,
                                          "GradLagrange",
                                          m_gradBasisFunctionsCompo,
-                                         m_gradBasisFunctions);
-
+                                         m_gradBasisFunctions); 
+ 
     // Computation of the real components of the gradient of the basis functions.
 
     m_gradRealBasisFunctionsX.resize(m_gradBasisFunctions.size() * m_tag.size()/3, 0);
@@ -186,14 +186,7 @@ Element::Element(const std::string gaussType, int type, int entityTag)
     {
         m_numFrontier = 4;
     }
-    /* else if(m_name.find("Pyramid"))
-    {
-        m_numFrontier = 5;
-    }
-    else if(m_name.find("Hexahedron"))
-    {
-        m_numFrontier = 6;
-    } */
+    
     else
     {
         gmsh::logger::write("The element is unsupported by gmsh or by the solver.","error");
@@ -285,19 +278,9 @@ Element::Element(const std::string gaussType, int type, int entityTag)
 
 }
 
-Element::~Element()
-{
-    if(m_frontierElements != NULL)
-    {
-        delete m_frontierElements;
-    }
-}
-
-
 // This fuctions elmiminates the 
-void Element::frontierAndNeighbouring()
+void Element::frontierAndNeighbouring(std::string gaussType)
 {
-    
     std::size_t i, j, k, l;
 
     std::vector<std::size_t> tmp_sortedNodes(m_frontierNodes.size());// temporary storage of the sorted nodes.
@@ -434,22 +417,20 @@ void Element::frontierAndNeighbouring()
     }
 
     frontierTag = gmsh::model::addDiscreteEntity(gmsh::model::getDimension() - 1);
-    frontierType[0] = gmsh::model::mesh::getElementType(frontierName, m_order);
 
-    
+    frontierType[0] = gmsh::model::mesh::getElementType(frontierName, m_order);
     
     gmsh::model::mesh::addElementsByType(frontierTag, 
-                                            frontierType[0],
-                                            {},
-                                            sortedNodes);
+                                         frontierType[0],
+                                         {},
+                                         sortedNodes);
 
-    m_frontierElements = new Frontier("Gauss4", frontierType[0], frontierTag);
+
+    m_frontierElements = new Frontier(gaussType, frontierType[0], frontierTag);
 
     m_frontierElements->getNormals(m_jacobianInverse, 
-                                    m_gaussPointsNumber,
-                                    m_neighbours);
-
-    
+                                   m_gaussPointsNumber,
+                                   m_neighbours);
 
 }
 
@@ -511,4 +492,12 @@ void Frontier::getNormals(std::vector<double> mainJacobianInverse, int mainNumGp
         }
     }
 
+}
+
+Element::~Element()
+{
+    if(m_frontierElements)
+    {
+        delete m_frontierElements;
+    }
 }

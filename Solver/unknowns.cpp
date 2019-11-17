@@ -119,15 +119,7 @@ void Unknown::getFluxes(const std::vector<double> normals,
         for(i = 0; i < m_fluxX.size(); ++i)
         {
             m_fluxX[i] = m_parameters[0] * m_nodeValue[i];
-        }
-
-        for(i = 0; i < m_fluxY.size() && gmsh::model::getDimension() >= 2; ++i)
-        {
             m_fluxY[i] = m_parameters[1] * m_nodeValue[i];
-        }
-
-        for(i = 0; i < m_fluxY.size() && gmsh::model::getDimension() == 3; ++i)
-        {
             m_fluxZ[i] = m_parameters[2] * m_nodeValue[i];
         }
 
@@ -139,31 +131,31 @@ void Unknown::getFluxes(const std::vector<double> normals,
     {
         std::vector<double> scalarProducts(m_gaussValue.size(), 0); // retains the  scalars products between the velocity vector and teh normal
 
-        m_numFluxX.resize(m_nodeValue.size(), 0);
-        m_numFluxY.resize(m_nodeValue.size(), 0);
-        m_numFluxZ.resize(m_nodeValue.size(), 0);
+        m_numFluxX.resize(m_gaussValue.size(), 0);
+        m_numFluxY.resize(m_gaussValue.size(), 0);
+        m_numFluxZ.resize(m_gaussValue.size(), 0);
 
         for(i = 0; i < normals.size(); ++i)
         {
             scalarProducts[i/3] += m_parameters[i % 3] * normals[i];
         }
 
-        for(i = 0; i < m_numFluxX.size(); ++i)
+        for(i = 0; i < m_gaussValue.size(); ++i)
         {
-            if(scalarProducts[i] > 0)
+            if(scalarProducts[i] > 0 && neighbours[i].second >= 0)
             {
                 m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].first;
                 m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].first;
                 m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].first;
             }
 
-            else if(neighbours[i].second >= 0)
+            else if(scalarProducts[i] < 0 && neighbours[i].second >= 0)
             {
                 m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].second;
                 m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].second;
                 m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].second;
             }
-
+            
             else if(m_boundaryType[i].find("Sinusoidal") != std::string::npos)
             {
                 m_numFluxX[i] = m_parameters[0] * m_parameters[3] * sin(m_parameters[4] * m_time);
@@ -185,6 +177,8 @@ void Unknown::getFluxes(const std::vector<double> normals,
                 m_numFluxZ[i] = 0.;
             }
 
+            
+
         }
     
     }
@@ -196,6 +190,7 @@ void Unknown::getBoundaryConditions(std::vector<std::size_t> frontierNodes,
                                     int numNodesPerFrontier,
                                     int elementType)
 {
+
     std::size_t i, j, k;
     std::vector<std::pair<int,int>> physicalDimTags;
     std::vector<std::size_t> physicalNodes;
@@ -243,6 +238,7 @@ void Unknown::getBoundaryConditions(std::vector<std::size_t> frontierNodes,
                     m_boundaryType[j/numNodesPerFrontier * numGpPerFrontier + k] = name;
                 }
             }
+
         }
         
     }
@@ -263,12 +259,12 @@ void Unknown::getGaussPointValues(std::vector<std::pair<int, int>> nodeCorrespon
         for(j = 0; j < elementNumNodes; ++j)
         {
             m_gaussValue[i].first += m_nodeValue[nodeCorrespondance[i/numGpPerFrontier * elementNumNodes + j].first] 
-                                   * basisfunctions[j * numGpPerFrontier + i % numGpPerFrontier];
+                                   * basisfunctions[i % numGpPerFrontier * elementNumNodes + j];
                                     
             if(nodeCorrespondance[i/numGpPerFrontier * elementNumNodes + j].second >= 0)
             {
                 m_gaussValue[i].second += m_nodeValue[nodeCorrespondance[i/numGpPerFrontier * elementNumNodes + j].second] 
-                                        * basisfunctions[j * numGpPerFrontier + i % numGpPerFrontier];
+                                        * basisfunctions[i % numGpPerFrontier * elementNumNodes + j];
             }
 
         }
@@ -293,6 +289,11 @@ void Unknown::computeNextStep(std::vector<double> S,
                                 * (S[i/numNodes * numNodes + k] + F[i/numNodes * numNodes + k]);
             }
         }
+    }
+
+    for(i = 0; i < S.size(); ++i)
+    {
+        std::cout << timeStep << " " << S[i] << " " << F[i] << " " << m_nodeValue[i] << std::endl;
     }
     
 }

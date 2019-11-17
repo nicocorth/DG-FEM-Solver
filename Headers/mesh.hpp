@@ -48,13 +48,14 @@ class Element{
     std::vector<double> m_gradRealBasisFunctionsZ; // Gradient of basis functions of the element in the real coordinate in Z.
     int m_gradBasisFunctionsCompo; // Number of components of gradient of basis functions.
     std::vector<double> m_jacobianMatrix; // Jacobian matrix of an element.
-    Frontier * m_frontierElements; // Contains the frontier elements created.
+    Frontier * m_frontierElements = NULL; // Contains the frontier elements created.
     std::vector<std::pair<int,int>> m_nodeCorrespondance; // Retains the indices of the nodes (not the tags) of the main elements that correspond to specific nodes on the frontier.
     
     public :
 
     Element(const std::string gaussType, int type, int entityTag);
     ~Element();
+    
 
     std::vector<double> getBasisFunctions()
     {
@@ -136,7 +137,7 @@ class Element{
         return m_jacobian;
     }
 
-    void frontierAndNeighbouring();
+    void frontierAndNeighbouring(std::string gaussType);
 
 };
 

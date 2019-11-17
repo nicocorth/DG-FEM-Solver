@@ -63,8 +63,7 @@ int main(int argc, char **argv)
 
     Element mainElements(gaussType, elementType[0], dimTags[0].second);
 
-    mainElements.frontierAndNeighbouring();
-
+    mainElements.frontierAndNeighbouring(gaussType);
 
     for(i = 0; i < u.size(); ++i)
     {
@@ -102,7 +101,7 @@ int main(int argc, char **argv)
                                       mainElements.getFrontierElements()->getNumNodes(),
                                       mainElements.getFrontierElements()->getBasisFunctions(),
                                       mainElements.getFrontierElements()->getGaussPointNumber());
-
+                                      
             // Acquisition of the fluxes.
             u[i]->getFluxes(mainElements.getFrontierElements()->normals(), 
                             mainElements.getNeighbours(),
@@ -136,6 +135,7 @@ int main(int argc, char **argv)
                 }
 
             }
+            
 
             // Computation of the matrix F's, containing the numerical fluxes.
             std::vector<double> F(mainElements.getTotalNumNodes(), 0);
@@ -168,6 +168,7 @@ int main(int argc, char **argv)
                 }
 
             }
+            
 
             u[i]->computeNextStep(S, 
                                   F, 
@@ -178,6 +179,7 @@ int main(int argc, char **argv)
             
 
             u[i]->incrementTime(timeStep);
+            
 
         }
 
@@ -187,6 +189,7 @@ int main(int argc, char **argv)
             allGaussValues[i] = u[i]->gaussPointValues();
             allNodesValues[i] = u[i]->nodeValues();
         }
+        
 
         std::vector<std::vector<double>> showNodeValues(mainElements.getTotalNumNodes());
 
@@ -199,8 +202,9 @@ int main(int argc, char **argv)
                 showNodeValues[i][j] = allNodesValues[j][i];
             }
         }
+        
 
-        /* gmsh::view::addModelData(viewTag, 
+        gmsh::view::addModelData(viewTag, 
                                  int(t/timeStep), 
                                  modelNames[0], 
                                  "NodeData" , 
@@ -208,21 +212,22 @@ int main(int argc, char **argv)
                                  showNodeValues, 
                                  t, 
                                  numUnknown);
+                                 
 
-        gmsh::view::write(viewTag, "testView.msh"); */
+        gmsh::view::write(viewTag, "testView.msh");
         
         
     }
 
     for(i = 0; i < u.size(); ++i)
     {
-        delete u[i];
+        if( u[i] != NULL)
+        {
+            delete u[i];
+        }
     }
 
-
     gmsh::finalize();
-
-    std::cout << "Hello" << std::endl;
 
     return 0;
 }
