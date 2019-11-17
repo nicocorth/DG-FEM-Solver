@@ -108,13 +108,17 @@ void Unknown::getFluxes(const std::vector<double> normals,
      *          ADVECTION ZONE
      * 
      * ********************************************************/
+
+    std::fill(m_fluxX.begin(), m_fluxX.end(), 0);
+    std::fill(m_fluxY.begin(), m_fluxY.end(), 0);
+    std::fill(m_fluxZ.begin(), m_fluxZ.end(), 0);
+
+    std::fill(m_numFluxX.begin(), m_numFluxX.end(), 0);
+    std::fill(m_numFluxY.begin(), m_numFluxY.end(), 0);
+    std::fill(m_numFluxZ.begin(), m_numFluxZ.end(), 0);
     
     if(m_fluxName.find("Advection") != std::string::npos)
     {
-
-        m_fluxX.resize(m_nodeValue.size(), 0);
-        m_fluxY.resize(m_nodeValue.size(), 0);
-        m_fluxZ.resize(m_nodeValue.size(), 0);
 
         for(i = 0; i < m_fluxX.size(); ++i)
         {
@@ -131,10 +135,6 @@ void Unknown::getFluxes(const std::vector<double> normals,
     {
         std::vector<double> scalarProducts(m_gaussValue.size(), 0); // retains the  scalars products between the velocity vector and teh normal
 
-        m_numFluxX.resize(m_gaussValue.size(), 0);
-        m_numFluxY.resize(m_gaussValue.size(), 0);
-        m_numFluxZ.resize(m_gaussValue.size(), 0);
-
         for(i = 0; i < normals.size(); ++i)
         {
             scalarProducts[i/3] += m_parameters[i % 3] * normals[i];
@@ -144,30 +144,30 @@ void Unknown::getFluxes(const std::vector<double> normals,
         {
             if(scalarProducts[i] > 0 && neighbours[i].second >= 0)
             {
-                m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].first;
-                m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].first;
-                m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].first;
+                m_numFluxX[i] = m_parameters[0] * normals[i * 3] * m_gaussValue[i].first;
+                m_numFluxY[i] = m_parameters[1] * normals[i * 3 + 1] * m_gaussValue[i].first;
+                m_numFluxZ[i] = m_parameters[2] * normals[i * 3 + 2] * m_gaussValue[i].first;
             }
 
             else if(scalarProducts[i] < 0 && neighbours[i].second >= 0)
             {
-                m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].second;
-                m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].second;
-                m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].second;
+                m_numFluxX[i] = m_parameters[0] * normals[i * 3] * m_gaussValue[i].second;
+                m_numFluxY[i] = m_parameters[1] * normals[i * 3 + 1] * m_gaussValue[i].second;
+                m_numFluxZ[i] = m_parameters[2] * normals[i * 3 + 2] * m_gaussValue[i].second;
             }
             
             else if(m_boundaryType[i].find("Sinusoidal") != std::string::npos)
             {
-                m_numFluxX[i] = m_parameters[0] * m_parameters[3] * sin(m_parameters[4] * m_time);
-                m_numFluxY[i] = m_parameters[1] * m_parameters[3] * sin(m_parameters[4] * m_time);
-                m_numFluxZ[i] = m_parameters[2] * m_parameters[3] * sin(m_parameters[4] * m_time);
+                m_numFluxX[i] = m_parameters[0] * m_parameters[3] * normals[i * 3] * sin(m_parameters[4] * m_time);
+                m_numFluxY[i] = m_parameters[1] * m_parameters[3] * normals[i * 3 + 1] * sin(m_parameters[4] * m_time);
+                m_numFluxZ[i] = m_parameters[2] * m_parameters[3] * normals[i * 3 + 2] * sin(m_parameters[4] * m_time);
             }
 
             else if(m_boundaryType[i].find("Opening") != std::string::npos)
             {
-                m_numFluxX[i] = m_parameters[0] * m_gaussValue[i].first;
-                m_numFluxY[i] = m_parameters[1] * m_gaussValue[i].first;
-                m_numFluxZ[i] = m_parameters[2] * m_gaussValue[i].first;
+                m_numFluxX[i] = m_parameters[0] * normals[i * 3] * m_gaussValue[i].first;
+                m_numFluxY[i] = m_parameters[1] * normals[i * 3 + 1] * m_gaussValue[i].first;
+                m_numFluxZ[i] = m_parameters[2] * normals[i * 3 + 2] * m_gaussValue[i].first;
             }
 
             else if(m_boundaryType[i].find("Wall") != std::string::npos)
@@ -175,9 +175,7 @@ void Unknown::getFluxes(const std::vector<double> normals,
                 m_numFluxX[i] = 0.;
                 m_numFluxY[i] = 0.;
                 m_numFluxZ[i] = 0.;
-            }
-
-            
+            } 
 
         }
     
@@ -259,16 +257,17 @@ void Unknown::getGaussPointValues(std::vector<std::pair<int, int>> nodeCorrespon
         for(j = 0; j < elementNumNodes; ++j)
         {
             m_gaussValue[i].first += m_nodeValue[nodeCorrespondance[i/numGpPerFrontier * elementNumNodes + j].first] 
-                                   * basisfunctions[i % numGpPerFrontier * elementNumNodes + j];
+                                   * basisfunctions[(i % numGpPerFrontier) * elementNumNodes + j];
                                     
             if(nodeCorrespondance[i/numGpPerFrontier * elementNumNodes + j].second >= 0)
             {
                 m_gaussValue[i].second += m_nodeValue[nodeCorrespondance[i/numGpPerFrontier * elementNumNodes + j].second] 
-                                        * basisfunctions[i % numGpPerFrontier * elementNumNodes + j];
+                                        * basisfunctions[(i % numGpPerFrontier) * elementNumNodes + j];
             }
 
         }
     }
+
 }
 
 void Unknown::computeNextStep(std::vector<double> S,
@@ -279,21 +278,22 @@ void Unknown::computeNextStep(std::vector<double> S,
 {
     std::size_t i, j, k;
 
-    for(i = 0; i < m_nodeValue.size(); ++i)
+    for(i = 0; i < M.size()/(numNodes * numNodes); ++i)
     {
         for(j = 0; j < numNodes; ++j)
         {
             for(k = 0; k < numNodes; ++k)
             {
-                m_nodeValue[i] += timeStep * M[i/numNodes * numNodes * numNodes + j * numNodes + k]
-                                * (S[i/numNodes * numNodes + k] + F[i/numNodes * numNodes + k]);
+                m_nodeValue[i * numNodes + j] += timeStep 
+                                               * M[i * numNodes * numNodes + j * numNodes + k] 
+                                               * (S[i * numNodes + k] + F[i * numNodes + k]);
             }
         }
     }
-
-    for(i = 0; i < S.size(); ++i)
+    
+    /* for(i = 0; i < S.size(); ++i)
     {
-        std::cout << timeStep << " " << S[i] << " " << F[i] << " " << m_nodeValue[i] << std::endl;
-    }
+        std::cout << S[i] << " " << F[i] << " " << m_nodeValue[i] << std::endl;
+    } */
     
 }

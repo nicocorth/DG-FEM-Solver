@@ -440,7 +440,9 @@ Frontier::Frontier(const std::string gaussType, int type, int entityTag)
 
 }
 
-void Frontier::getNormals(std::vector<double> mainJacobianInverse, int mainNumGp, std::vector<std::pair<int,int>> neighbours)
+void Frontier::getNormals(std::vector<double> mainJacobianInverse,
+                          int mainNumGp, 
+                          std::vector<std::pair<int,int>> neighbours)
 {
     std::size_t i, j, k;
 

@@ -214,7 +214,7 @@ int main(int argc, char **argv)
                                  numUnknown);
                                  
 
-        gmsh::view::write(viewTag, "testView.msh");
+        //gmsh::view::write(viewTag, "testView.msh");
         
         
     }
