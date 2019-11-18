@@ -53,7 +53,7 @@ class Element{
     
     public :
 
-    Element(const std::string gaussType, int type, int entityTag);
+    Element(std::string gaussType, int type, int entityTag);
     ~Element();
     
 
@@ -151,9 +151,9 @@ class Frontier : public Element{
 
     Frontier(const std::string gaussType, int type, int entityTag);
     
-    void getNormals(std::vector<double> mainJacobian,
+    void getNormals(const std::vector<double> & mainJacobian,
                     int mainNumGp, 
-                    std::vector<std::pair<int,int>> neighbours);
+                    const std::vector<std::pair<int,int>> & neighbours);
 
     std::vector<double> normals()
     {

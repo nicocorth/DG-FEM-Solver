@@ -1,9 +1,9 @@
-/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Geometry/Tests/test.msh
+/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Geometry/Tests/test2D.msh
 1
 Advection
 AdvectionUpwind
 5
-1 0 0 1 0.5
+0.5. 0. 0. 1. 0.5
 0.001
-100
+10
 Gauss2

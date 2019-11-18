@@ -74,19 +74,20 @@ Unknown::Unknown(double totalGaussPointsNumber,
                  double totalNumNodes, 
                  std::string fluxName, 
                  std::string numFluxName, 
-                 std::vector<double> parameters)
+                 const std::vector<double> & parameters)
 {
-    m_nodeValue.resize(totalNumNodes, 0);
+    std::size_t i;
+    m_nodeValue.resize(totalNumNodes, 0.);
 
-    m_fluxX.resize(totalNumNodes, 0);
-    m_fluxY.resize(totalNumNodes, 0);
-    m_fluxZ.resize(totalNumNodes, 0);
+    m_fluxX.resize(totalNumNodes, 0.);
+    m_fluxY.resize(totalNumNodes, 0.);
+    m_fluxZ.resize(totalNumNodes, 0.);
 
     m_gaussValue.resize(totalGaussPointsNumber, std::make_pair(0,0));
 
-    m_numFluxX.resize(totalGaussPointsNumber, 0);
-    m_numFluxY.resize(totalGaussPointsNumber, 0);
-    m_numFluxZ.resize(totalGaussPointsNumber, 0);
+    m_numFluxX.resize(totalGaussPointsNumber, 0.);
+    m_numFluxY.resize(totalGaussPointsNumber, 0.);
+    m_numFluxZ.resize(totalGaussPointsNumber, 0.);
 
     m_fluxName = fluxName;
     m_numFluxName = numFluxName;
@@ -95,11 +96,11 @@ Unknown::Unknown(double totalGaussPointsNumber,
 
 }
 
-void Unknown::getFluxes(const std::vector<double> normals,
-                        const std::vector<std::pair<int, int>> neighbours,
+void Unknown::getFluxes(const std::vector<double> & normals,
+                        const std::vector<std::pair<int, int>> & neighbours,
                         int gaussPointsNumbers,
-                        std::vector<std::vector<double>> allNodeValues,
-                        std::vector<std::vector<std::pair<double,double>>> allGaussValues)
+                        const std::vector<std::vector<double>> & allNodeValues,
+                        const std::vector<std::vector<std::pair<double,double>>> & allGaussValues)
 {
     std::size_t i;
 
@@ -129,8 +130,6 @@ void Unknown::getFluxes(const std::vector<double> normals,
 
     }
 
-    // Upwind numerical flux for 1D advection
-
     if(m_numFluxName.find("AdvectionUpwind") != std::string::npos)
     {
         std::vector<double> scalarProducts(m_gaussValue.size(), 0); // retains the  scalars products between the velocity vector and teh normal
@@ -142,7 +141,7 @@ void Unknown::getFluxes(const std::vector<double> normals,
 
         for(i = 0; i < m_gaussValue.size(); ++i)
         {
-            if(scalarProducts[i] > 0 && neighbours[i].second >= 0)
+            if(scalarProducts[i] >= 0 && neighbours[i].second >= 0)
             {
                 m_numFluxX[i] = m_parameters[0] * normals[i * 3] * m_gaussValue[i].first;
                 m_numFluxY[i] = m_parameters[1] * normals[i * 3 + 1] * m_gaussValue[i].first;
@@ -158,9 +157,9 @@ void Unknown::getFluxes(const std::vector<double> normals,
             
             else if(m_boundaryType[i].find("Sinusoidal") != std::string::npos)
             {
-                m_numFluxX[i] = m_parameters[0] * m_parameters[3] * normals[i * 3] * sin(m_parameters[4] * m_time);
-                m_numFluxY[i] = m_parameters[1] * m_parameters[3] * normals[i * 3 + 1] * sin(m_parameters[4] * m_time);
-                m_numFluxZ[i] = m_parameters[2] * m_parameters[3] * normals[i * 3 + 2] * sin(m_parameters[4] * m_time);
+                m_numFluxX[i] = m_parameters[0] * normals[i * 3] * m_parameters[3] * sin(m_parameters[4] * m_time);
+                m_numFluxY[i] = m_parameters[1] * normals[i * 3 + 1] * m_parameters[3] * sin(m_parameters[4] * m_time);
+                m_numFluxZ[i] = m_parameters[2] * normals[i * 3 + 2] * m_parameters[3] * sin(m_parameters[4] * m_time);
             }
 
             else if(m_boundaryType[i].find("Opening") != std::string::npos)
@@ -183,7 +182,7 @@ void Unknown::getFluxes(const std::vector<double> normals,
 
 }
 
-void Unknown::getBoundaryConditions(std::vector<std::size_t> frontierNodes, 
+void Unknown::getBoundaryConditions(const std::vector<std::size_t> & frontierNodes, 
                                     int numGpPerFrontier,
                                     int numNodesPerFrontier,
                                     int elementType)
@@ -243,9 +242,9 @@ void Unknown::getBoundaryConditions(std::vector<std::size_t> frontierNodes,
 
 }
 
-void Unknown::getGaussPointValues(std::vector<std::pair<int, int>> nodeCorrespondance, 
+void Unknown::getGaussPointValues(const std::vector<std::pair<int, int>> & nodeCorrespondance, 
                                   int elementNumNodes, 
-                                  std::vector<double> basisfunctions, 
+                                  const std::vector<double> & basisfunctions, 
                                   int numGpPerFrontier)
 {
     std::size_t i, j;
@@ -268,11 +267,12 @@ void Unknown::getGaussPointValues(std::vector<std::pair<int, int>> nodeCorrespon
         }
     }
 
+
 }
 
-void Unknown::computeNextStep(std::vector<double> S,
-                              std::vector<double> F, 
-                              std::vector<double> M,
+void Unknown::computeNextStep(const std::vector<double> & S,
+                              const std::vector<double> & F, 
+                              const std::vector<double> & M,
                               int numNodes,
                               double timeStep)
 {
@@ -291,9 +291,9 @@ void Unknown::computeNextStep(std::vector<double> S,
         }
     }
     
-    /* for(i = 0; i < S.size(); ++i)
+    for(i = 0; i < S.size(); ++i)
     {
         std::cout << S[i] << " " << F[i] << " " << m_nodeValue[i] << std::endl;
-    } */
+    }
     
 }

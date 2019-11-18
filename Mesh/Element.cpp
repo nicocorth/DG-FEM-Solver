@@ -77,7 +77,6 @@ Element::Element(const std::string gaussType, int type, int entityTag)
     {
         Eigen::MatrixXd inverse = jacobianMatrix[i].inverse();
 
-
         for(j = 0; j < 3; ++j)
         {
             for(k = 0; k < 3; ++k)
@@ -235,7 +234,6 @@ Element::Element(const std::string gaussType, int type, int entityTag)
                                         * m_basisFunctions[l * m_basisFunctionsNumber + k] 
                                         * m_jacobian[i * m_gaussPointsNumber + l];
                 
-
                     m_stiffnessMatrixX[matrixIndex] += m_gaussWeight[l] 
                                                      * m_basisFunctions[l * m_basisFunctionsNumber + k] 
                                                      * m_gradRealBasisFunctionsX[realGradIndex] 
@@ -399,7 +397,6 @@ void Element::frontierAndNeighbouring(std::string gaussType)
             
         }
     }
-
     
     if(gmsh::model::getDimension() == 3)
     {
@@ -434,15 +431,15 @@ void Element::frontierAndNeighbouring(std::string gaussType)
 
 }
 
-Frontier::Frontier(const std::string gaussType, int type, int entityTag) 
+Frontier::Frontier(std::string gaussType, int type, int entityTag) 
     : Element(gaussType, type, entityTag)
 {
 
 }
 
-void Frontier::getNormals(std::vector<double> mainJacobianInverse,
+void Frontier::getNormals(const std::vector<double> & mainJacobianInverse,
                           int mainNumGp, 
-                          std::vector<std::pair<int,int>> neighbours)
+                          const std::vector<std::pair<int,int>> & neighbours)
 {
     std::size_t i, j, k;
 
@@ -467,7 +464,10 @@ void Frontier::getNormals(std::vector<double> mainJacobianInverse,
 
             if(m_dim == 0)
             {
-                compoX = 1;
+                compoX = m_jacobianInverse[jacobianIndex];
+
+                sign = mainJacobianInverse[mainJacobIndex + 4] 
+                     * mainJacobianInverse[mainJacobIndex + 8]; 
             }
 
             if(m_dim == 1)
@@ -492,6 +492,7 @@ void Frontier::getNormals(std::vector<double> mainJacobianInverse,
             m_normals[frontierIndex + 2] = sign * compoZ/norm;
 
         }
+
     }
 
 }

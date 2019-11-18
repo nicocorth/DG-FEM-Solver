@@ -32,26 +32,27 @@ class Unknown{
             double totalNumNodes, 
             std::string fluxName, 
             std::string numFluxName, 
-            std::vector<double> parameters);
+            const std::vector<double> & parameters);
 
-    void getFluxes(const std::vector<double> normals,
-                   const std::vector<std::pair<int, int>> neighbours,
+    void getFluxes(const std::vector<double> & normals,
+                   const std::vector<std::pair<int, int>> & neighbours,
                    int gaussPointsNumbers,
-                   std::vector<std::vector<double>> allNodeValues,
-                   std::vector<std::vector<std::pair<double,double>>> allGaussValues);
+                   const std::vector<std::vector<double>> & allNodeValues,
+                   const std::vector<std::vector<std::pair<double,double>>> & allGaussValues);
 
-    void getGaussPointValues(std::vector<std::pair<int, int>> nodeCorrespondance, 
+    void getGaussPointValues(const std::vector<std::pair<int, int>> & nodeCorrespondance, 
                              int elementNumNodes, 
-                             std::vector<double> basisfunctions, 
+                             const std::vector<double> & basisfunctions, 
                              int numGpPerFrontier);
 
-    void getBoundaryConditions(std::vector<std::size_t> frontierNodes, 
+    void getBoundaryConditions(const std::vector<std::size_t> & frontierNodes, 
                                int numGpPerFrontier,
                                int numNodesPerFrontier,
                                int elementType);
 
-    void computeNextStep(std::vector<double> S,
-                         std::vector<double> F, std::vector<double> M,
+    void computeNextStep(const std::vector<double> & S,
+                         const std::vector<double> & F,
+                         const std::vector<double> & M,
                          int numNodes,
                          double timeStep);
 

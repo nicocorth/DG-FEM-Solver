@@ -38,10 +38,12 @@ int main(int argc, char **argv)
                       timeMax,
                       gaussType);
 
+
     gmsh::initialize(argc, argv);
     gmsh::option::setNumber("General.Terminal", 1);
     gmsh::option::setNumber("Mesh.SaveAll", 1);
     gmsh::open(mshPath);
+
 
     std::vector<Unknown *> u(numUnknown); // Value at the current time
     std::vector<std::vector<double>> allNodesValues(numUnknown); // Vector that contains the node values of all the unknwons. Very useful for coupled systems
@@ -53,6 +55,7 @@ int main(int argc, char **argv)
                                    bin1,
                                    gmsh::model::getDimension());
 
+
     gmsh::model::getEntities(dimTags,
                              gmsh::model::getDimension());
 
@@ -60,6 +63,8 @@ int main(int argc, char **argv)
     {
         gmsh::logger::write("No hybrid mesh can be taken into account.");
     }
+
+    std::cout << elementType.size() << std::endl;
 
     Element mainElements(gaussType, elementType[0], dimTags[0].second);
 
@@ -118,7 +123,7 @@ int main(int argc, char **argv)
                 {
                     for(l = 0; l < mainElements.getNumNodes(); ++l)
                     {
-                        S[j * mainElements.getNumNodes() + k] += mainElements.getStiffnessMatrixX(j * mainElements.getNumNodes() * mainElements.getNumNodes() 
+                        S[j * mainElements.getNumNodes() + k] += (mainElements.getStiffnessMatrixX(j * mainElements.getNumNodes() * mainElements.getNumNodes() 
                                                                                                   + k * mainElements.getNumNodes() 
                                                                                                   + l)
                                                                * u[i]->fluxX(j * mainElements.getNumNodes() + l)
@@ -129,7 +134,7 @@ int main(int argc, char **argv)
                                                                + mainElements.getStiffnessMatrixZ(j * mainElements.getNumNodes() * mainElements.getNumNodes() 
                                                                                                   + k * mainElements.getNumNodes() 
                                                                                                   + l)
-                                                               * u[i]->fluxZ(j * mainElements.getNumNodes() + l);
+                                                               * u[i]->fluxZ(j * mainElements.getNumNodes() + l));
                     }
                     
                 }
@@ -157,11 +162,11 @@ int main(int argc, char **argv)
                                       + u[i]->numFluxY(j * mainElements.getFrontierElements()->getGaussPointNumber() + l)
                                       + u[i]->numFluxZ(j * mainElements.getFrontierElements()->getGaussPointNumber() + l));
 
-                        F[nodeCorrespondance[j].first] -= tmp;
+                        F[nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].first] -= tmp;
                             
-                        if(nodeCorrespondance[j].second >= 0)
+                        if(nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].second >= 0)
                         {
-                            F[nodeCorrespondance[j].second] += tmp;
+                            F[nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].second] += tmp;
                         }
                     }
 
@@ -214,7 +219,7 @@ int main(int argc, char **argv)
                                  numUnknown);
                                  
 
-        //gmsh::view::write(viewTag, "testView.msh");
+        gmsh::view::write(viewTag, "testView.msh");
         
         
     }
