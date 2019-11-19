@@ -141,14 +141,14 @@ void Unknown::getFluxes(const std::vector<double> & normals,
 
         for(i = 0; i < m_gaussValue.size(); ++i)
         {
-            if(scalarProducts[i] >= 0 && neighbours[i].second >= 0)
+            if(scalarProducts[i] >= 0 && neighbours[i/gaussPointsNumbers].second >= 0)
             {
                 m_numFluxX[i] = m_parameters[0] * normals[i * 3] * m_gaussValue[i].first;
                 m_numFluxY[i] = m_parameters[1] * normals[i * 3 + 1] * m_gaussValue[i].first;
                 m_numFluxZ[i] = m_parameters[2] * normals[i * 3 + 2] * m_gaussValue[i].first;
             }
 
-            else if(scalarProducts[i] < 0 && neighbours[i].second >= 0)
+            else if(scalarProducts[i] < 0 && neighbours[i/gaussPointsNumbers].second >= 0)
             {
                 m_numFluxX[i] = m_parameters[0] * normals[i * 3] * m_gaussValue[i].second;
                 m_numFluxY[i] = m_parameters[1] * normals[i * 3 + 1] * m_gaussValue[i].second;

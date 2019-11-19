@@ -153,21 +153,24 @@ int main(int argc, char **argv)
             {
                 for(k = 0; k < mainElements.getFrontierElements()->getNumNodes(); ++k)
                 {
+                    double tmp = 0;
+
                     for(l = 0; l < mainElements.getFrontierElements()->getGaussPointNumber(); ++l)
                     {
-                        double tmp = frontierBasisFunctions[l * mainElements.getFrontierElements()->getNumNodes() + k]
-                                   * frontierGaussWeight[l]
-                                   * frontierJacobians[j * mainElements.getFrontierElements()->getGaussPointNumber() + l]
-                                   *  ( u[i]->numFluxX(j * mainElements.getFrontierElements()->getGaussPointNumber() + l)
-                                      + u[i]->numFluxY(j * mainElements.getFrontierElements()->getGaussPointNumber() + l)
-                                      + u[i]->numFluxZ(j * mainElements.getFrontierElements()->getGaussPointNumber() + l));
+                        tmp += frontierBasisFunctions[l * mainElements.getFrontierElements()->getNumNodes() + k]
+                            * frontierGaussWeight[l]
+                            * frontierJacobians[j * mainElements.getFrontierElements()->getGaussPointNumber() + l]
+                            *  ( u[i]->numFluxX(j * mainElements.getFrontierElements()->getGaussPointNumber() + l)
+                                + u[i]->numFluxY(j * mainElements.getFrontierElements()->getGaussPointNumber() + l)
+                                + u[i]->numFluxZ(j * mainElements.getFrontierElements()->getGaussPointNumber() + l));
 
-                        F[nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].first] -= tmp;
+                    }
+
+                    F[nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].first] -= tmp;
                             
-                        if(nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].second >= 0)
-                        {
-                            F[nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].second] += tmp;
-                        }
+                    if(nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].second >= 0)
+                    {
+                        F[nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].second] += tmp;
                     }
 
                 }
