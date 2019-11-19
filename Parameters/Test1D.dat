@@ -1,9 +1,14 @@
 /home/nicolas/Documents/Current_Work/TFE/DG_Solver/Geometry/Tests/test.msh
-1
+2
 Advection
+Advection
+AdvectionUpwind
 AdvectionUpwind
 5
 0.5. 0. 0. 1. 0.5
+0.5. 0. 0. 1. 0.25
 0.01
 10
 Gauss2
+u_View.msh
+v_View.msh

@@ -118,7 +118,6 @@ class Unknown{
         m_time += increment;
     }
 
-
 };
 
 void parametersLoading(const std::string paramPath,
@@ -129,6 +128,7 @@ void parametersLoading(const std::string paramPath,
                        std::vector<std::vector<double>> & parameters,
                        double & timeStep,
                        double & timeMax,
-                       std::string & gaussType);
+                       std::string & gaussType,
+                       std::vector<std::string> & viewNames);
 
 #endif

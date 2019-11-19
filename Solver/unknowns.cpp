@@ -14,7 +14,8 @@ void parametersLoading(const std::string paramPath,
                        std::vector<std::vector<double>> & parameters,
                        double & timeStep,
                        double & timeMax,
-                       std::string & gaussType)
+                       std::string & gaussType,
+                       std::vector<std::string> & viewNames)
 {
 
     std::size_t i, j;
@@ -65,6 +66,13 @@ void parametersLoading(const std::string paramPath,
     parametersFile.get();
 
     getline(parametersFile, gaussType);
+
+    viewNames.resize(numUnknown);
+
+    for(i = 0; i < numUnknown; ++i)
+    {
+        getline(parametersFile, viewNames[i]);
+    }
 
     parametersFile.close();
 
@@ -289,11 +297,6 @@ void Unknown::computeNextStep(const std::vector<double> & S,
                                                * (S[i * numNodes + k] + F[i * numNodes + k]);
             }
         }
-    }
-    
-    for(i = 0; i < S.size(); ++i)
-    {
-        std::cout << S[i] << " " << F[i] << " " << m_nodeValue[i] << std::endl;
     }
     
 }

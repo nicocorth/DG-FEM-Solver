@@ -18,8 +18,8 @@ int main(int argc, char **argv)
     double timeMax; // maximum time of the simulation.
     double t; // Current simulation time
     std::string gaussType; // Type of Gauss integration.
-    int viewTag; // tag of the view.
-    std::vector<std::string> modelNames;
+    std::vector<std::string> modelNames; // Get the model name
+    std::vector<std::string> viewNames; // get the name of the final views.
 
 
     std::vector<int> elementType;
@@ -36,7 +36,8 @@ int main(int argc, char **argv)
                       parameters,
                       timeStep,
                       timeMax,
-                      gaussType);
+                      gaussType,
+                      viewNames);
 
 
     gmsh::initialize(argc, argv);
@@ -72,6 +73,7 @@ int main(int argc, char **argv)
 
     for(i = 0; i < u.size(); ++i)
     {
+
         u[i] = new Unknown (mainElements.getFrontierElements()->getTotalGaussPointNumber(),
                             mainElements.getTotalNumNodes(),
                             fluxName[i],
@@ -95,12 +97,26 @@ int main(int argc, char **argv)
     }
 
     gmsh::model::list(modelNames);
-    viewTag = gmsh::view::add("View");
+    std::vector<int> viewTags(numUnknown);
+
+    std::vector<std::vector<double>> showResults(mainElements.getTotalNumNodes());
+
+    for(i = 0; i < viewTags.size(); ++i)
+    {
+        viewTags[i] = gmsh::view::add(viewNames[i]);
+        std::cout << viewNames[i] << std::endl;
+    }
+
+    for(i = 0; i < showResults.size(); ++i)
+    {
+        showResults[i].resize(1);
+    }
 
     for(t = 0; t < timeMax; t += timeStep)
     {
         for(i = 0; i < u.size(); ++i)
         {
+
             // Acquisition of the Gauss points values.
             u[i]->getGaussPointValues(mainElements.getCorrespondance(),
                                       mainElements.getFrontierElements()->getNumNodes(),
@@ -187,7 +203,21 @@ int main(int argc, char **argv)
             
 
             u[i]->incrementTime(timeStep);
-            
+
+            for(j = 0; j < showResults.size(); ++j)
+            {
+                showResults[j][0] = u[i]->nodeValue(j);
+            }
+
+            gmsh::view::addModelData(viewTags[i], 
+                                     int(t/timeStep), 
+                                     modelNames[0], 
+                                     "NodeData" , 
+                                     mainElements.getNodeTags(), 
+                                     showResults, 
+                                     t);
+
+            gmsh::view::write(viewTags[i], viewNames[i]);
 
         }
 
@@ -197,33 +227,6 @@ int main(int argc, char **argv)
             allGaussValues[i] = u[i]->gaussPointValues();
             allNodesValues[i] = u[i]->nodeValues();
         }
-        
-
-        std::vector<std::vector<double>> showNodeValues(mainElements.getTotalNumNodes());
-
-        for(i = 0; i < showNodeValues.size(); ++i)
-        {
-            showNodeValues[i].resize(numUnknown);
-
-            for(j = 0; j < showNodeValues[i].size(); ++j)
-            {
-                showNodeValues[i][j] = allNodesValues[j][i];
-            }
-        }
-        
-
-        gmsh::view::addModelData(viewTag, 
-                                 int(t/timeStep), 
-                                 modelNames[0], 
-                                 "NodeData" , 
-                                 mainElements.getNodeTags(), 
-                                 showNodeValues, 
-                                 t, 
-                                 numUnknown);
-                                 
-
-        gmsh::view::write(viewTag, "testView.msh");
-        
         
     }
 
