@@ -23,6 +23,8 @@ string
 -
 iostream
 -
+mesh.hpp
+../Headers/mesh.hpp
 
 ../eigen/Eigen/Cholesky
 Core
@@ -1459,6 +1461,18 @@ iostream
 -
 string.h
 -
+
+/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/solver.cpp
+cstdio
+-
+iostream
+-
+gmsh.h
+/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/gmsh.h
+mesh.hpp
+/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/mesh.hpp
+solver.hpp
+/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/solver.hpp
 
 /home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/unknowns.cpp
 cstdio

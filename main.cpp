@@ -9,6 +9,7 @@
 
 int main(int argc, char **argv)
 {
+
     std::string mshPath; // path to the msh file
     int numUnknown; // Number of unknown of the problem.
     std::vector<std::string> fluxName; // All name of the fluxes in the unknown order.
@@ -18,13 +19,14 @@ int main(int argc, char **argv)
     double timeMax; // maximum time of the simulation.
     double t; // Current simulation time
     std::string gaussType; // Type of Gauss integration.
-    std::vector<std::string> modelNames; // Get the model name
     std::vector<std::string> viewNames; // get the name of the final views.
+    std::string timeMethod; // Contains the name of the temporal method.
 
 
     std::vector<int> elementType;
     std::vector<std::vector<std::size_t>> bin, bin1;
     gmsh::vectorpair dimTags;
+
 
     std::size_t i, j, k, l, m;
 
@@ -37,7 +39,8 @@ int main(int argc, char **argv)
                       timeStep,
                       timeMax,
                       gaussType,
-                      viewNames);
+                      viewNames,
+                      timeMethod);
 
 
     gmsh::initialize(argc, argv);
@@ -45,10 +48,6 @@ int main(int argc, char **argv)
     gmsh::option::setNumber("Mesh.SaveAll", 1);
     gmsh::open(mshPath);
 
-
-    std::vector<Unknown *> u(numUnknown); // Value at the current time
-    std::vector<std::vector<double>> allNodesValues(numUnknown); // Vector that contains the node values of all the unknwons. Very useful for coupled systems
-    std::vector<std::vector<std::pair<double,double>>> allGaussValues(numUnknown); // smae principle for Gauss.
 
     // Gets all elements in the mesh.
     gmsh::model::mesh::getElements(elementType,
@@ -65,178 +64,20 @@ int main(int argc, char **argv)
         gmsh::logger::write("No hybrid mesh can be taken into account.");
     }
 
-    std::cout << elementType.size() << std::endl;
-
     Element mainElements(gaussType, elementType[0], dimTags[0].second);
 
     mainElements.frontierAndNeighbouring(gaussType);
 
-    for(i = 0; i < u.size(); ++i)
-    {
 
-        u[i] = new Unknown (mainElements.getFrontierElements()->getTotalGaussPointNumber(),
-                            mainElements.getTotalNumNodes(),
-                            fluxName[i],
-                            numFluxName[i],
-                            parameters[i]);
-
-        
-        u[i]->getBoundaryConditions(mainElements.getFrontierElements()->getNodeTags(),
-                                    mainElements.getFrontierElements()->getGaussPointNumber(),
-                                    mainElements.getFrontierElements()->getNumNodes(),
-                                    mainElements.getFrontierElements()->getType());
-        
-
-        
-    }
-
-    for(i = 0; i < numUnknown; ++i)
-    {
-        allNodesValues[i].resize(mainElements.getTotalNumNodes(),0);
-        allGaussValues[i].resize(mainElements.getFrontierElements()->getTotalGaussPointNumber(), std::make_pair (0,0));
-    }
-
-    gmsh::model::list(modelNames);
-    std::vector<int> viewTags(numUnknown);
-
-    std::vector<std::vector<double>> showResults(mainElements.getTotalNumNodes());
-
-    for(i = 0; i < viewTags.size(); ++i)
-    {
-        viewTags[i] = gmsh::view::add(viewNames[i]);
-        std::cout << viewNames[i] << std::endl;
-    }
-
-    for(i = 0; i < showResults.size(); ++i)
-    {
-        showResults[i].resize(1);
-    }
-
-    for(t = 0; t < timeMax; t += timeStep)
-    {
-        for(i = 0; i < u.size(); ++i)
-        {
-
-            // Acquisition of the Gauss points values.
-            u[i]->getGaussPointValues(mainElements.getCorrespondance(),
-                                      mainElements.getFrontierElements()->getNumNodes(),
-                                      mainElements.getFrontierElements()->getBasisFunctions(),
-                                      mainElements.getFrontierElements()->getGaussPointNumber());
-                                      
-            // Acquisition of the fluxes.
-            u[i]->getFluxes(mainElements.getFrontierElements()->normals(), 
-                            mainElements.getNeighbours(),
-                            mainElements.getFrontierElements()->getGaussPointNumber(),
-                            allNodesValues,
-                            allGaussValues);
-
-            // Multiplication of the fluxes and the stiffness matrices
-            std::vector<double> S(mainElements.getTotalNumNodes(), 0);
-
-            for(j = 0; j < S.size()/(mainElements.getNumNodes()); ++j)
-            {
-                for(k = 0; k < mainElements.getNumNodes(); ++k)
-                {
-                    for(l = 0; l < mainElements.getNumNodes(); ++l)
-                    {
-                        S[j * mainElements.getNumNodes() + k] += (mainElements.getStiffnessMatrixX(j * mainElements.getNumNodes() * mainElements.getNumNodes() 
-                                                                                                  + k * mainElements.getNumNodes() 
-                                                                                                  + l)
-                                                               * u[i]->fluxX(j * mainElements.getNumNodes() + l)
-                                                               + mainElements.getStiffnessMatrixY(j * mainElements.getNumNodes() * mainElements.getNumNodes() 
-                                                                                                  + k * mainElements.getNumNodes() 
-                                                                                                  + l)
-                                                               * u[i]->fluxY(j * mainElements.getNumNodes() + l)
-                                                               + mainElements.getStiffnessMatrixZ(j * mainElements.getNumNodes() * mainElements.getNumNodes() 
-                                                                                                  + k * mainElements.getNumNodes() 
-                                                                                                  + l)
-                                                               * u[i]->fluxZ(j * mainElements.getNumNodes() + l));
-                    }
-                    
-                }
-
-            }
-            
-
-            // Computation of the matrix F's, containing the numerical fluxes.
-            std::vector<double> F(mainElements.getTotalNumNodes(), 0);
-            std::vector<double> frontierBasisFunctions = mainElements.getFrontierElements()->getBasisFunctions();
-            std::vector<double> frontierGaussWeight = mainElements.getFrontierElements()->getGaussWeight();
-            std::vector<double> frontierJacobians = mainElements.getFrontierElements()->getJacobians();
-            std::vector<std::pair<int,int>> nodeCorrespondance = mainElements.getCorrespondance();
-
-            for(j = 0; j < mainElements.getFrontierElements()->getTotalNumNodes()/mainElements.getFrontierElements()->getNumNodes(); ++j)
-            {
-                for(k = 0; k < mainElements.getFrontierElements()->getNumNodes(); ++k)
-                {
-                    double tmp = 0;
-
-                    for(l = 0; l < mainElements.getFrontierElements()->getGaussPointNumber(); ++l)
-                    {
-                        tmp += frontierBasisFunctions[l * mainElements.getFrontierElements()->getNumNodes() + k]
-                            * frontierGaussWeight[l]
-                            * frontierJacobians[j * mainElements.getFrontierElements()->getGaussPointNumber() + l]
-                            *  ( u[i]->numFluxX(j * mainElements.getFrontierElements()->getGaussPointNumber() + l)
-                                + u[i]->numFluxY(j * mainElements.getFrontierElements()->getGaussPointNumber() + l)
-                                + u[i]->numFluxZ(j * mainElements.getFrontierElements()->getGaussPointNumber() + l));
-
-                    }
-
-                    F[nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].first] -= tmp;
-                            
-                    if(nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].second >= 0)
-                    {
-                        F[nodeCorrespondance[j * mainElements.getFrontierElements()->getNumNodes() + k].second] += tmp;
-                    }
-
-                }
-
-            }
-            
-
-            u[i]->computeNextStep(S, 
-                                  F, 
-                                  mainElements.getMassMatrixInverse(), 
-                                  mainElements.getNumNodes(), 
-                                  timeStep);
-
-            
-
-            u[i]->incrementTime(timeStep);
-
-            for(j = 0; j < showResults.size(); ++j)
-            {
-                showResults[j][0] = u[i]->nodeValue(j);
-            }
-
-            gmsh::view::addModelData(viewTags[i], 
-                                     int(t/timeStep), 
-                                     modelNames[0], 
-                                     "NodeData" , 
-                                     mainElements.getNodeTags(), 
-                                     showResults, 
-                                     t);
-
-            gmsh::view::write(viewTags[i], viewNames[i]);
-
-        }
-
-
-        for(i = 0; i < numUnknown; ++i)
-        {
-            allGaussValues[i] = u[i]->gaussPointValues();
-            allNodesValues[i] = u[i]->nodeValues();
-        }
-        
-    }
-
-    for(i = 0; i < u.size(); ++i)
-    {
-        if( u[i] != NULL)
-        {
-            delete u[i];
-        }
-    }
+    solver(numUnknown,
+           mainElements,
+           fluxName,
+           numFluxName,
+           parameters,
+           timeStep,
+           timeMax,
+           viewNames,
+           timeMethod);
 
     gmsh::finalize();
 

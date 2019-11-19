@@ -150,6 +150,33 @@ Mesh/Element.cpp.s:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/Mesh/Element.cpp.s
 .PHONY : Mesh/Element.cpp.s
 
+Solver/solver.o: Solver/solver.cpp.o
+
+.PHONY : Solver/solver.o
+
+# target to build an object file
+Solver/solver.cpp.o:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/Solver/solver.cpp.o
+.PHONY : Solver/solver.cpp.o
+
+Solver/solver.i: Solver/solver.cpp.i
+
+.PHONY : Solver/solver.i
+
+# target to preprocess a source file
+Solver/solver.cpp.i:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/Solver/solver.cpp.i
+.PHONY : Solver/solver.cpp.i
+
+Solver/solver.s: Solver/solver.cpp.s
+
+.PHONY : Solver/solver.s
+
+# target to generate assembly for a file
+Solver/solver.cpp.s:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/Solver/solver.cpp.s
+.PHONY : Solver/solver.cpp.s
+
 Solver/unknowns.o: Solver/unknowns.cpp.o
 
 .PHONY : Solver/unknowns.o
@@ -216,6 +243,9 @@ help:
 	@echo "... Mesh/Element.o"
 	@echo "... Mesh/Element.i"
 	@echo "... Mesh/Element.s"
+	@echo "... Solver/solver.o"
+	@echo "... Solver/solver.i"
+	@echo "... Solver/solver.s"
 	@echo "... Solver/unknowns.o"
 	@echo "... Solver/unknowns.i"
 	@echo "... Solver/unknowns.s"

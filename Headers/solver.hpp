@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "mesh.hpp"
 
 // Class containing the unknowns of the problem.
 class Unknown{
@@ -13,26 +14,37 @@ class Unknown{
     
     std::vector<double> m_nodeValue; // Nodal values of the unknown.
     std::vector<std::pair<double,double>> m_gaussValue; // Gauss point values of the unknown.
-    std::vector<double> m_fluxX; // Nodal values of the physiqcal fluxes along X.
-    std::vector<double> m_fluxY; // Nodal values of the physiqcal fluxes along Y.
-    std::vector<double> m_fluxZ; // Nodal values of the physiqcal fluxes along Z.
+    std::vector<double> m_fluxX; // Nodal values of the physical fluxes along X.
+    std::vector<double> m_fluxY; // Nodal values of the physical fluxes along Y.
+    std::vector<double> m_fluxZ; // Nodal values of the physical fluxes along Z.
     std::vector<double> m_numFluxX; // Numerical flux value at the gauss points along X.
     std::vector<double> m_numFluxY; // Numerical flux value at the gauss points along Y.
     std::vector<double> m_numFluxZ; // Numerical flux value at the gauss points along Z.
     std::vector<double> m_parameters; // Contains the parameters for the computation of the different fluxes.
     std::string m_fluxName; // Name of the physical flux.
-    std::string m_numFluxName; // flux name
-    double m_time; // time at which the unknown is evaluated.
+    std::string m_numFluxName; // Name of the numerical flux.
+    double m_time; // Time at which the unknown is evaluated.
     std::vector<std::string> m_boundaryType; // Contains the boundary type of each node.
 
     public:
 
-    // Initialize the unknown vector with the values at time 0 everywhere on the plane.
+    /* This is the Unknown constructor. totalGaussPointsNumber represents the total number of gauss points on
+    the frontier elements. totalNumNodes is the total number of nodes on all main elements. fluxNname and
+    numFluxName contains the name of the physical and numerical fluxes respectively. parameters gather all
+    required parameters of the simulation.*/
+
     Unknown(double totalGaussPointsNumber, 
             double totalNumNodes, 
             std::string fluxName, 
             std::string numFluxName, 
             const std::vector<double> & parameters);
+
+    /* This function compute the fluxes of the Unknown. normals are the normal to the gauss point of the
+    frontier elements. neighbours contains the index of the main elements which are on each side of each frontier
+    element. gaussPointsNumber is the number of gauss points per frontier element. allNodeValues si a 2D vector
+    whose length is the total number of unknowns of the system. Each entry contains a vector with the value
+    of an unknwon at each node. allGaussValues is similar to allNodeValues but it stores the values at the 
+    Gauss points. */
 
     void getFluxes(const std::vector<double> & normals,
                    const std::vector<std::pair<int, int>> & neighbours,
@@ -50,13 +62,19 @@ class Unknown{
                                int numNodesPerFrontier,
                                int elementType);
 
-    void computeNextStep(const std::vector<double> & S,
-                         const std::vector<double> & F,
-                         const std::vector<double> & M,
-                         int numNodes,
-                         double timeStep);
+    void update(std::vector<double> & updater)
+    {
+        std::size_t i;
 
-    void visualize(int viewTag);
+        for(i = 0; i < updater.size(); ++i)
+        {
+
+            m_nodeValue[i] += updater[i];
+
+        }
+        
+    }
+
 
     std::vector<std::pair<double,double>> gaussPointValues()
     {
@@ -129,6 +147,18 @@ void parametersLoading(const std::string paramPath,
                        double & timeStep,
                        double & timeMax,
                        std::string & gaussType,
-                       std::vector<std::string> & viewNames);
+                       std::vector<std::string> & viewNames,
+                       std::string & timeMethod);
+
+void solver(int numUnknown,
+            Element & mainElements,
+            std::vector<std::string> fluxName,
+            std::vector<std::string> numFluxName,
+            std::vector<std::vector<double>> parameters,
+            double timeStep,
+            double timeMax, 
+            std::vector<std::string> & viewNames,
+            std::string timeMethod);
+
 
 #endif

@@ -287,7 +287,13 @@ CMakeFiles/main.dir/Mesh/Element.cpp.o
  ../eigen/Eigen/src/plugins/MatrixCwiseUnaryOps.h
  ../gmsh-4.4.1-Linux64-sdk/include/gmsh.h
  /home/nicolas/Documents/Current_Work/TFE/DG_Solver/Mesh/Element.cpp
+CMakeFiles/main.dir/Solver/solver.cpp.o
+ ../Headers/mesh.hpp
+ ../Headers/solver.hpp
+ ../gmsh-4.4.1-Linux64-sdk/include/gmsh.h
+ /home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/solver.cpp
 CMakeFiles/main.dir/Solver/unknowns.cpp.o
+ ../Headers/mesh.hpp
  ../Headers/solver.hpp
  ../gmsh-4.4.1-Linux64-sdk/include/gmsh.h
  /home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/unknowns.cpp
