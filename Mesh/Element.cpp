@@ -180,7 +180,7 @@ Element::Element(const std::string gaussType, int type, int entityTag)
     {
         m_numFrontier = 3;
     }
-    else if(m_name.find("Quandrangle") != std::string::npos 
+    else if(m_name.find("Quadrilateral") != std::string::npos 
             || m_name.find("Tetrahedron") != std::string::npos)
     {
         m_numFrontier = 4;
@@ -414,7 +414,7 @@ void Element::frontierAndNeighbouring(std::string gaussType)
 
         else if(m_name.find("Hexahedron") != std::string::npos)
         {
-            std::cout << "Hello" << std::endl;
+
             frontierName = "quadrangle";
 
         }
@@ -422,12 +422,16 @@ void Element::frontierAndNeighbouring(std::string gaussType)
 
     else if(gmsh::model::getDimension() == 2)
     {
+
         frontierName = "line";
+
     }
 
     else
     {
+
         frontierName = "point";
+
     }
 
     frontierTag = gmsh::model::addDiscreteEntity(gmsh::model::getDimension() - 1);
@@ -518,6 +522,8 @@ Element::~Element()
 {
     if(m_frontierElements)
     {
+
         delete m_frontierElements;
+
     }
 }

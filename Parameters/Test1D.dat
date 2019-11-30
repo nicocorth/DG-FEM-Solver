@@ -8,9 +8,9 @@ AdvectionUpwind
 0.5 0. 0. 1. 10
 0.5 0. 0. 1. 10
 0.01
-10
+0
 Gauss2
 u_View.msh
 v_View.msh
 Runge Kutta 4
-1
+5
