@@ -14,6 +14,24 @@ vector
 string
 -
 
+../Headers/parameters.hpp
+iostream
+-
+gmsh.h
+-
+cmath
+-
+vector
+-
+fstream
+-
+gmsh.h
+../Headers/gmsh.h
+mesh.hpp
+../Headers/mesh.hpp
+solver.hpp
+../Headers/solver.hpp
+
 ../Headers/solver.hpp
 cstdio
 -
@@ -25,6 +43,8 @@ iostream
 -
 mesh.hpp
 ../Headers/mesh.hpp
+parameters.hpp
+../Headers/parameters.hpp
 
 ../eigen/Eigen/Cholesky
 Core
@@ -1473,6 +1493,8 @@ mesh.hpp
 /home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/mesh.hpp
 solver.hpp
 /home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/solver.hpp
+parameters.hpp
+/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/parameters.hpp
 
 /home/nicolas/Documents/Current_Work/TFE/DG_Solver/Solver/unknowns.cpp
 cstdio
@@ -1496,9 +1518,19 @@ cstdio
 iostream
 -
 gmsh.h
+-
+cmath
+-
+vector
+-
+fstream
+-
+gmsh.h
 /home/nicolas/Documents/Current_Work/TFE/DG_Solver/gmsh.h
 mesh.hpp
 /home/nicolas/Documents/Current_Work/TFE/DG_Solver/mesh.hpp
 solver.hpp
 /home/nicolas/Documents/Current_Work/TFE/DG_Solver/solver.hpp
+parameters.hpp
+/home/nicolas/Documents/Current_Work/TFE/DG_Solver/parameters.hpp
 

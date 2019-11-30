@@ -5,7 +5,9 @@
 #include <vector>
 #include <string>
 #include <iostream>
+
 #include "mesh.hpp"
+#include "parameters.hpp"
 
 // Class containing the unknowns of the problem.
 class Unknown{
@@ -48,9 +50,7 @@ class Unknown{
 
     void getFluxes(const std::vector<double> & normals,
                    const std::vector<std::pair<int, int>> & neighbours,
-                   int gaussPointsNumbers,
-                   const std::vector<std::vector<double>> & allNodeValues,
-                   const std::vector<std::vector<std::pair<double,double>>> & allGaussValues);
+                   int gaussPointsNumbers);
 
     void getGaussPointValues(const std::vector<std::pair<int, int>> & nodeCorrespondance, 
                              int elementNumNodes, 
@@ -62,7 +62,7 @@ class Unknown{
                                int numNodesPerFrontier,
                                int elementType);
 
-    void update(std::vector<double> & updater)
+    void update(const std::vector<double> & updater)
     {
         std::size_t i;
 
@@ -131,34 +131,14 @@ class Unknown{
         return m_numFluxZ[i];
     }
 
-    void incrementTime(double increment)
+    void setTime(double t)
     {
-        m_time += increment;
+        m_time = t;
     }
 
 };
 
-void parametersLoading(const std::string paramPath,
-                       std::string & mshPath,
-                       int & numUnknown,
-                       std::vector<std::string> & fluxName,
-                       std::vector<std::string> & numFluxName,
-                       std::vector<std::vector<double>> & parameters,
-                       double & timeStep,
-                       double & timeMax,
-                       std::string & gaussType,
-                       std::vector<std::string> & viewNames,
-                       std::string & timeMethod);
-
-void solver(int numUnknown,
-            Element & mainElements,
-            std::vector<std::string> fluxName,
-            std::vector<std::string> numFluxName,
-            std::vector<std::vector<double>> parameters,
-            double timeStep,
-            double timeMax, 
-            std::vector<std::string> & viewNames,
-            std::string timeMethod);
+void solver(Parameters & simulInfos, Element & mainElements);
 
 
 #endif

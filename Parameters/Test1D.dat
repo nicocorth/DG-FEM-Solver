@@ -5,11 +5,12 @@ Advection
 AdvectionUpwind
 AdvectionUpwind
 5
-0.5. 0. 0. 1. 0.5
-0.5. 0. 0. 1. 0.25
+0.5 0. 0. 1. 10
+0.5 0. 0. 1. 10
 0.01
 10
 Gauss2
 u_View.msh
 v_View.msh
-Euler
+Runge Kutta 4
+1

@@ -6,97 +6,6 @@
 #include <vector>
 #include <fstream>
 
-void parametersLoading(const std::string paramPath,
-                       std::string & mshPath,
-                       int & numUnknown,
-                       std::vector<std::string> & fluxName,
-                       std::vector<std::string> & numFluxName,
-                       std::vector<std::vector<double>> & parameters,
-                       double & timeStep,
-                       double & timeMax,
-                       std::string & gaussType,
-                       std::vector<std::string> & viewNames,
-                       std::string & timeMethod)
-{
-
-    std::size_t i, j;
-
-    int numParams;
-
-    std::ifstream parametersFile;
-
-    parametersFile.open(paramPath);
-
-    // Getting the name of the msh file.
-    getline(parametersFile, mshPath);
-
-    parametersFile >> numUnknown;
-
-    parametersFile.get();
-
-    fluxName.resize(numUnknown);
-
-    numFluxName.resize(numUnknown);
-
-    parameters.resize(numUnknown);
-
-    viewNames.resize(numUnknown);
-
-    for(i = 0; i < numUnknown; ++i)
-    {
-
-        getline(parametersFile, fluxName[i]);
-
-    }
-
-    for(i = 0; i < numUnknown; ++i)
-    {
-        getline(parametersFile, numFluxName[i]);
-    }
-
-    parametersFile >> numParams;
-
-    parametersFile.get();
-
-    for(i = 0; i < numUnknown; ++i)
-    {
-
-        parameters[i].resize(numParams);
-
-        for(j = 0; j < numParams; ++j)
-        {
-
-            parametersFile >> parameters[i][j];
-
-            parametersFile.get();
-
-        }
-
-    }
-
-    parametersFile >> timeStep;
-
-    parametersFile.get();
-
-    parametersFile >> timeMax;
-
-    parametersFile.get();
-
-    getline(parametersFile, gaussType);
-
-    for(i = 0; i < numUnknown; ++i)
-    {
-
-        getline(parametersFile, viewNames[i]);
-        
-    }
-
-    getline(parametersFile, timeMethod);
-
-    parametersFile.close();
-
-}
-
 Unknown::Unknown(double totalGaussPointsNumber, 
                  double totalNumNodes, 
                  std::string fluxName, 
@@ -125,9 +34,7 @@ Unknown::Unknown(double totalGaussPointsNumber,
 
 void Unknown::getFluxes(const std::vector<double> & normals,
                         const std::vector<std::pair<int, int>> & neighbours,
-                        int gaussPointsNumbers,
-                        const std::vector<std::vector<double>> & allNodeValues,
-                        const std::vector<std::vector<std::pair<double,double>>> & allGaussValues)
+                        int gaussPointsNumbers)
 {
     std::size_t i;
 

@@ -185,6 +185,11 @@ Element::Element(const std::string gaussType, int type, int entityTag)
     {
         m_numFrontier = 4;
     }
+
+    else if(m_name.find("Hexahedron") != std::string::npos)
+    {
+        m_numFrontier = 6;
+    }
     
     else
     {
@@ -400,7 +405,19 @@ void Element::frontierAndNeighbouring(std::string gaussType)
     
     if(gmsh::model::getDimension() == 3)
     {
-        frontierName = "triangle";
+        if(m_name.find("Tetrahedron") != std::string::npos)
+        {
+
+            frontierName = "triangle";
+
+        }
+
+        else if(m_name.find("Hexahedron") != std::string::npos)
+        {
+            std::cout << "Hello" << std::endl;
+            frontierName = "quadrangle";
+
+        }
     }
 
     else if(gmsh::model::getDimension() == 2)
