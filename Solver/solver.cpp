@@ -7,7 +7,8 @@
 #include "parameters.hpp"
 
 std::vector<std::vector<double>> computeRightHandSide(std::vector<Unknown *> & u, 
-                                                      Element & mainElements)
+                                                      Element & mainElements,
+                                                      double factor = 1.0)
 {
 
     std::size_t i, j, k, l;
@@ -125,7 +126,8 @@ std::vector<std::vector<double>> computeRightHandSide(std::vector<Unknown *> & u
                 for(l = 0; l < mainNumNodes; ++l)
                 {
                     rightHandSide[i][j * mainNumNodes + k] += M[j * mainNumNodes * mainNumNodes + k * mainNumNodes + l] 
-                                                           * (S[j * mainNumNodes + l] + F[j * mainNumNodes + l]);
+                                                           * (S[j * mainNumNodes + l] + F[j * mainNumNodes + l])
+                                                           * factor;
                 }
 
             }
@@ -160,25 +162,42 @@ void fullUpdate(std::vector<Unknown *> & u,
         u[i]->setTime(t);
 
     }
+    
 
 }
 
-void vecMultiply(std::vector<std::vector<double>> & vec, const double multConst)
+void displayResults(Parameters & simulInfos,
+                    const std::vector<Unknown *> & u,
+                    Element & mainElements,
+                    std::string modelName,
+                    const std::vector<int> & viewTags,
+                    double t,
+                    std::vector<std::vector<double>> showResults)
 {
 
     std::size_t i, j;
 
-    for(i = 0; i < vec.size(); ++i)
+    for(i = 0; i < u.size(); ++i)
     {
 
-        for(j = 0; j < vec[i].size(); ++j)
+        for(j = 0; j < showResults.size(); ++j)
         {
 
-            vec[i][j] *= multConst;
-
+            showResults[j][0] = u[i]->nodeValue(j);
+            
         }
 
-    }
+        gmsh::view::addModelData(viewTags[i], 
+                                int(t/simulInfos.timeStep()), 
+                                modelName, 
+                                "NodeData" , 
+                                mainElements.getNodeTags(), 
+                                showResults, 
+                                t);
+
+        gmsh::view::write(viewTags[i], simulInfos.viewNames(i));
+
+    }   
 
 }
 
@@ -237,17 +256,46 @@ void solver(Parameters & simulInfos, Element & mainElements)
 
     }
 
-    for(t = 0; t < simulInfos.timeMax(); t += simulInfos.timeStep())
+    if(simulInfos.timeMethod().find("Euler") != std::string::npos)
     {
 
-        if(simulInfos.timeMethod().find("Euler") != std::string::npos)
+        for(t = 0; t < simulInfos.timeMax(); t += simulInfos.timeStep())
         {
 
-            rightHandSide = computeRightHandSide(u, mainElements);
+            rightHandSide = computeRightHandSide(u, mainElements, simulInfos.timeStep());
 
+            fullUpdate(u, rightHandSide, t + simulInfos.timeStep());
+
+            if(!(count % simulInfos.timeRegistration()) && count != 0 && simulInfos.timeRegistration())
+            {
+
+                displayResults(simulInfos,
+                               u,
+                               mainElements,
+                               modelNames[0],
+                               viewTags,
+                               t,
+                               showResults);
+
+                count = 0;
+
+            }
+
+            else
+            {
+
+                ++count;
+
+            }
+            
         }
 
-        else if(simulInfos.timeMethod().find("Runge Kutta 4") != std::string::npos)
+    }
+
+    else if(simulInfos.timeMethod().find("Runge Kutta 4") != std::string::npos)
+    {
+
+        for(t = 0; t < simulInfos.timeMax(); t += simulInfos.timeStep())
         {
 
             std::vector<Unknown *> tmp = u;
@@ -276,48 +324,41 @@ void solver(Parameters & simulInfos, Element & mainElements)
                 for(j = 0; j < rightHandSide[i].size(); ++j)
                 {
 
-                    rightHandSide[i][j] = 1/6 * (k1[i][j] + 2 * k2[i][j] + 2 * k3[i][j] + k4[i][j]);
+                    rightHandSide[i][j] = simulInfos.timeStep()/6 
+                                        * (k1[i][j] + 2 * k2[i][j] + 2 * k3[i][j] + k4[i][j]);
 
                 }
 
             }
-            
-        }
 
-        fullUpdate(u, rightHandSide, t + simulInfos.timeStep(), simulInfos.timeStep());
+            fullUpdate(u, rightHandSide, t + simulInfos.timeStep());
 
-        if(!(count % simulInfos.timeRegistration()) && count != 0)
-        {
-
-            for(i = 0; i < u.size(); ++i)
+            if(!(count % simulInfos.timeRegistration()) && count != 0 && simulInfos.timeRegistration())
             {
 
-                for(j = 0; j < showResults.size(); ++j)
-                {
-
-                    showResults[j][0] = u[i]->nodeValue(j);
-                    
-                }
-
-                gmsh::view::addModelData(viewTags[i], 
-                                        int(t/simulInfos.timeStep()), 
-                                        modelNames[0], 
-                                        "NodeData" , 
-                                        mainElements.getNodeTags(), 
-                                        showResults, 
-                                        t);
-
-                gmsh::view::write(viewTags[i], simulInfos.viewNames(i));
+                displayResults(simulInfos,
+                               u,
+                               mainElements,
+                               modelNames[0],
+                               viewTags,
+                               t,
+                               showResults);
+                               
+                count = 0;
 
             }
 
-            count = 0;
+            else
+            {
+
+                ++count;
+
+            }
 
         }
-
-        ++count;
-
+            
     }
+
 
     for(i = 0; i < u.size(); ++i)
     {

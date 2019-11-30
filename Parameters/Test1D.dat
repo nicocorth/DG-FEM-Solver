@@ -1,16 +1,12 @@
-/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Geometry/Tests/test.msh
-2
+/home/nicolas/Documents/Current_Work/TFE/DG_Solver/Geometry/Tests/test1D.msh
+1
 Advection
-Advection
-AdvectionUpwind
 AdvectionUpwind
 5
 0.5 0. 0. 1. 10
-0.5 0. 0. 1. 10
-0.01
-0
+0.0001
+100
 Gauss2
-u_View.msh
 v_View.msh
 Runge Kutta 4
-5
+0
