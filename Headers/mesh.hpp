@@ -34,6 +34,7 @@ class Element{
     int m_totalGaussPointsNumber; // Total number of gauss points on the mesh.
     std::vector<double> m_jacobian; // Jacobian of the element at each gauss points.
     std::vector<double> m_jacobianInverse; // Jacobian inverse of the element at each gauss points.
+    std::vector<double> m_gaussCoordinates; // Real coordinates of the Gauss points.
     std::vector<std::pair<int,int>> m_neighbours; // Dim and tag of the element neighbour.
     std::vector<std::size_t> m_frontierNodes; // Nodes at the frontier of the element.
     int m_numFrontier; // number of frontiers on the element.
@@ -135,6 +136,11 @@ class Element{
     std::vector<double> getJacobians()
     {
         return m_jacobian;
+    }
+
+    std::vector<double> getGaussCoordinates()
+    {
+        return m_gaussCoordinates;
     }
 
     void frontierAndNeighbouring(std::string gaussType);

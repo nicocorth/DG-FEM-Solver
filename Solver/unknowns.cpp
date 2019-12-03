@@ -126,7 +126,8 @@ void Unknown::getFluxes(const std::vector<double> & normals,
                 m_numFluxX[i] = m_parameters[0] 
                               * normals[i * 3] 
                               * m_parameters[3] 
-                              * sin(m_parameters[4] * m_time);
+                              * sin(m_parameters[4] * m_time); 
+                              
                               
                 m_numFluxY[i] = m_parameters[1] 
                               * normals[i * 3 + 1] 
@@ -278,6 +279,5 @@ void Unknown::getGaussPointValues(const std::vector<std::pair<int, int>> & nodeC
         }
 
     }
-
 
 }

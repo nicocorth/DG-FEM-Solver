@@ -15,7 +15,9 @@ class Unknown{
     protected:
     
     std::vector<double> m_nodeValue; // Nodal values of the unknown.
+    std::vector<std::vector<double>> m_nodeProperties; // Properties at the given node. It is of the form "N1prop1, N1prop2, ..., N2prop1, ... NNpropP"
     std::vector<std::pair<double,double>> m_gaussValue; // Gauss point values of the unknown.
+    std::vector<std::pair<double,double>> m_gaussProperties; // Same principle as m_nodeProperties pour les pts de gauss.
     std::vector<double> m_fluxX; // Nodal values of the physical fluxes along X.
     std::vector<double> m_fluxY; // Nodal values of the physical fluxes along Y.
     std::vector<double> m_fluxZ; // Nodal values of the physical fluxes along Z.
@@ -62,6 +64,11 @@ class Unknown{
                                int numNodesPerFrontier,
                                int elementType);
 
+
+    void getNodeProperties();
+
+    void getGaussProperties();
+
     void update(const std::vector<double> & updater)
     {
         std::size_t i;
@@ -75,6 +82,10 @@ class Unknown{
         
     }
 
+    std::vector<double> parameters()
+    {
+        return m_parameters;
+    }
 
     std::vector<std::pair<double,double>> gaussPointValues()
     {

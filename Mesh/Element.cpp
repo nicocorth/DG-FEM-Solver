@@ -8,7 +8,7 @@
 Element::Element(const std::string gaussType, int type, int entityTag)
 {
 
-    std::vector<double> bin, bin1;
+    std::vector<double> bin;
     std::size_t i, j, k, l;
 
     m_type = type;
@@ -50,7 +50,7 @@ Element::Element(const std::string gaussType, int type, int entityTag)
                                     m_gaussPoints,
                                     m_jacobianMatrix,
                                     m_jacobian, 
-                                    bin1,
+                                    m_gaussCoordinates,
                                     entityTag);
  
 
@@ -257,6 +257,7 @@ Element::Element(const std::string gaussType, int type, int entityTag)
                 }
                 
             }
+
         }
 
         massMatrix[i] = massMatrix[i].inverse();
@@ -485,10 +486,13 @@ void Frontier::getNormals(const std::vector<double> & mainJacobianInverse,
 
             if(m_dim == 0)
             {
-                compoX = m_jacobianInverse[jacobianIndex];
+                compoX = 1;
 
-                sign = mainJacobianInverse[mainJacobIndex + 4] 
-                     * mainJacobianInverse[mainJacobIndex + 8]; 
+                if(!i && !j)
+                {
+                    sign = -1;
+                }
+                     
             }
 
             if(m_dim == 1)

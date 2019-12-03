@@ -28,6 +28,7 @@ class Parameters{
     std::vector<std::string> m_viewNames; // get the name of the final views.
     std::string m_timeMethod; // Contains the name of the temporal method.
     int m_timeRegistration; // Contains the times at which registration occur.
+    double m_stepErrorEstimate; // timestep at which the error is assessed. < 0 means no error estimate.
 
     public:
 
@@ -86,6 +87,11 @@ class Parameters{
         return m_timeRegistration;
     }
 
+    double stepErrorEstimate()
+    {
+        return m_stepErrorEstimate;
+    }
+
     Parameters(std::string paramPath)
     {
 
@@ -121,7 +127,9 @@ class Parameters{
 
         for(i = 0; i < m_numUnknown; ++i)
         {
+
             getline(parametersFile, m_numFluxName[i]);
+
         }
 
         parametersFile >> numParams;
@@ -164,6 +172,10 @@ class Parameters{
         getline(parametersFile, m_timeMethod);
 
         parametersFile >> m_timeRegistration;
+
+        parametersFile.get();
+
+        parametersFile >> m_stepErrorEstimate;
 
         parametersFile.get();
 

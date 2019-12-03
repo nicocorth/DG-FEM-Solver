@@ -142,15 +142,16 @@ std::vector<std::vector<double>> computeRightHandSide(std::vector<Unknown *> & u
 
 void fullUpdate(std::vector<Unknown *> & u,
                 std::vector<std::vector<double>> values,
-                const double t,
-                const double factor = 1)
+                double t,
+                double factor = 1.0)
 {
 
     std::size_t i, j;
 
     for(i = 0; i < u.size(); ++i)
     {
-        for(j = 0; j < values[i].size(); ++j)
+
+        for(j = 0; j < values[i].size() && factor != 1; ++j)
         {
 
             values[i][j] *= factor;
@@ -197,7 +198,61 @@ void displayResults(Parameters & simulInfos,
 
         gmsh::view::write(viewTags[i], simulInfos.viewNames(i));
 
+
     }   
+
+}
+
+void computeError(double t,
+                  const std::vector<Unknown *> & u,
+                  Element & mainElements)
+{
+
+    std::size_t i, j, k;
+
+    std::vector<double> L2error(u.size(), 0);
+
+    std::vector<double> jacobians = mainElements.getJacobians();
+
+    std::vector<double> gaussCoordinates = mainElements.getGaussCoordinates();
+
+    std::vector<double> basisFunction = mainElements.getBasisFunctions();
+
+    std::vector<double> jacobianWeight = mainElements.getGaussWeight();
+
+    for(i = 0; i < u.size(); ++i)
+    {
+
+        std::vector<double> parameters = u[i]->parameters();
+
+        for(j = 0; j < mainElements.getTotalGaussPointNumber(); ++j)
+        {
+
+            double mainGpValues = 0;
+
+            for(k = 0; k < mainElements.getNumNodes(); ++k)
+            {
+
+                mainGpValues += basisFunction[(j % mainElements.getGaussPointNumber()) * mainElements.getNumNodes() + k]
+                             * u[i]->nodeValue((j/mainElements.getGaussPointNumber()) * mainElements.getNumNodes() + k);
+                
+                
+            }
+
+            double trueSol = parameters[3] * sin((t - gaussCoordinates[j * 3]/parameters[0]) * parameters[4]);
+
+            std::cout << trueSol << " " << mainGpValues << " " << gaussCoordinates[j*3] << " " << parameters[4] << std::endl;                     
+
+            L2error[i] += (mainGpValues - trueSol) 
+                        * (mainGpValues - trueSol) 
+                        * jacobians[j]
+                        * jacobianWeight[j % mainElements.getGaussPointNumber()];
+
+        }
+
+        std::cout << sqrt(L2error[i]) << std::endl;
+
+    }
 
 }
 
@@ -213,8 +268,6 @@ void solver(Parameters & simulInfos, Element & mainElements)
     std::vector<Unknown *> u(simulInfos.numUnknown());
 
     std::vector<std::vector<double>> showResults(mainElements.getTotalNumNodes());
-
-    std::vector<std::vector<double>> rightHandSide(u.size());
 
     std::vector<std::string> modelNames; // Get the model name
 
@@ -236,8 +289,6 @@ void solver(Parameters & simulInfos, Element & mainElements)
                                     mainElements.getFrontierElements()->getGaussPointNumber(),
                                     mainElements.getFrontierElements()->getNumNodes(),
                                     mainElements.getFrontierElements()->getType());
-
-        rightHandSide[i].resize(mainElements.getTotalNumNodes());
         
         
     }
@@ -259,14 +310,14 @@ void solver(Parameters & simulInfos, Element & mainElements)
     if(simulInfos.timeMethod().find("Euler") != std::string::npos)
     {
 
-        for(t = 0; t < simulInfos.timeMax(); t += simulInfos.timeStep())
+        for(t = 0; t <= simulInfos.timeMax(); t += simulInfos.timeStep())
         {
 
-            rightHandSide = computeRightHandSide(u, mainElements, simulInfos.timeStep());
+            fullUpdate(u,
+                       computeRightHandSide(u, mainElements, simulInfos.timeStep()),
+                       t + simulInfos.timeStep());
 
-            fullUpdate(u, rightHandSide, t + simulInfos.timeStep());
-
-            if(!(count % simulInfos.timeRegistration()) && count != 0 && simulInfos.timeRegistration())
+            if(!(count % simulInfos.timeRegistration()) && count > 0 && simulInfos.timeRegistration() > 0)
             {
 
                 displayResults(simulInfos,
@@ -276,7 +327,7 @@ void solver(Parameters & simulInfos, Element & mainElements)
                                viewTags,
                                t,
                                showResults);
-
+                               
                 count = 0;
 
             }
@@ -290,33 +341,52 @@ void solver(Parameters & simulInfos, Element & mainElements)
             
         }
 
+        computeError(t - simulInfos.timeStep(),
+                     u,
+                     mainElements);
+
     }
 
     else if(simulInfos.timeMethod().find("Runge Kutta 4") != std::string::npos)
     {
 
-        for(t = 0; t < simulInfos.timeMax(); t += simulInfos.timeStep())
+        std::vector<std::vector<double>> rightHandSide(u.size());
+
+        for(i = 0; i < rightHandSide.size(); ++i)
+        {
+
+            rightHandSide[i].resize(mainElements.getTotalNumNodes());
+                
+        }
+
+        for(t = 0; t <= simulInfos.timeMax(); t += simulInfos.timeStep())
         {
 
             std::vector<Unknown *> tmp = u;
 
-            std::vector<std::vector<double>> k1 = computeRightHandSide(tmp, mainElements);
+            std::vector<std::vector<double>> k1 = computeRightHandSide(tmp,
+                                                                       mainElements,
+                                                                       simulInfos.timeStep());
 
-            fullUpdate(tmp, k1, t + simulInfos.timeStep()/2, simulInfos.timeStep()/2);
+            fullUpdate(tmp, k1, t + simulInfos.timeStep()/2, 1/2);
 
-            std::vector<std::vector<double>> k2 = computeRightHandSide(tmp, mainElements);
-
-            tmp = u;
-
-            fullUpdate(tmp, k2, t + simulInfos.timeStep()/2, simulInfos.timeStep()/2);
-
-            std::vector<std::vector<double>> k3 = computeRightHandSide(tmp, mainElements);
+            std::vector<std::vector<double>> k2 = computeRightHandSide(tmp,
+                                                                       mainElements,
+                                                                       simulInfos.timeStep());
 
             tmp = u;
 
-            fullUpdate(tmp, k3, t + simulInfos.timeStep(), simulInfos.timeStep());
+            fullUpdate(tmp, k2, t + simulInfos.timeStep()/2, 1/2);
 
-            std::vector<std::vector<double>> k4 = computeRightHandSide(tmp, mainElements);
+            std::vector<std::vector<double>> k3 = computeRightHandSide(tmp,
+                                                                       mainElements,
+                                                                       simulInfos.timeStep());
+
+            tmp = u;
+
+            fullUpdate(tmp, k3, t + simulInfos.timeStep());
+
+            std::vector<std::vector<double>> k4 = computeRightHandSide(tmp, mainElements, simulInfos.timeStep());
 
             for(i = 0; i < rightHandSide.size(); ++i)
             {
@@ -324,8 +394,7 @@ void solver(Parameters & simulInfos, Element & mainElements)
                 for(j = 0; j < rightHandSide[i].size(); ++j)
                 {
 
-                    rightHandSide[i][j] = simulInfos.timeStep()/6 
-                                        * (k1[i][j] + 2 * k2[i][j] + 2 * k3[i][j] + k4[i][j]);
+                    rightHandSide[i][j] = 1/6 * (k1[i][j] + 2 * k2[i][j] + 2 * k3[i][j] + k4[i][j]);
 
                 }
 
@@ -333,7 +402,7 @@ void solver(Parameters & simulInfos, Element & mainElements)
 
             fullUpdate(u, rightHandSide, t + simulInfos.timeStep());
 
-            if(!(count % simulInfos.timeRegistration()) && count != 0 && simulInfos.timeRegistration())
+            if(!(count % simulInfos.timeRegistration()) && count > 0 && simulInfos.timeRegistration() > 0)
             {
 
                 displayResults(simulInfos,
@@ -356,6 +425,10 @@ void solver(Parameters & simulInfos, Element & mainElements)
             }
 
         }
+
+        computeError(t - simulInfos.timeStep(),
+                     u,
+                     mainElements);
             
     }
 
